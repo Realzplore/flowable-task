@@ -1,0 +1,10 @@
+mybatis-plus:
+  mapper-locations: classpath:com/flowable/modules/group/mapping/*Mapper.xml
+  global-config:
+      id-type: 2
+      field-strategy: 2
+      db-column-underline: true
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      sql-injector: com.baomidou.mybatisplus.mapper.LogicSqlInjector
+      refresh-mapper: false

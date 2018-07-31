@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.flowable.org/processdef">
+  <process id="Test_Expense" name="TestExpense" isExecutable="true">
+    <startEvent id="startEvent1"></startEvent>
+    <serviceTask id="saveData" name="saveData" flowable:class="com.flowable.delegate.DataDelegate">
+    </serviceTask>
+    <sequenceFlow id="sid-BF6A7ED8-D7AE-42D9-9E11-832A52434C7A" sourceRef="startEvent1" targetRef="saveData"></sequenceFlow>
+    <serviceTask id="checkBudget" name="checkBudget" flowable:class="com.flowable.delegate.BudgetDelegate">
+    </serviceTask>
+    <sequenceFlow id="sid-FF9E2855-0432-445E-9AD9-EB33143396B1" sourceRef="saveData" targetRef="checkBudget"></sequenceFlow>
+    <userTask id="manager" name="manager">
+      <extensionElements>
+        <flowable:taskListener event="create" class="com.flowable.listener.ManagerTaskHandler"/>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="sid-3BBA364D-5A3C-4904-8B77-94EABC1023FE" sourceRef="checkBudget" targetRef="manager"></sequenceFlow>
+    <endEvent id="sid-6262E9F1-5712-4DBF-BA04-CD73935BA0EB">
+    </endEvent>
+    <sequenceFlow id="sid-1B7F49C8-179D-4EEB-8779-B984D136B42A" sourceRef="manager" targetRef="sid-6262E9F1-5712-4DBF-BA04-CD73935BA0EB"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Test_Expense">
+    <bpmndi:BPMNPlane bpmnElement="Test_Expense" id="BPMNPlane_Test_Expense">
+      <bpmndi:BPMNShape bpmnElement="startEvent1" id="BPMNShape_startEvent1">
+        <omgdc:Bounds height="30.0" width="30.0" x="100.0" y="163.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="saveData" id="BPMNShape_saveData">
+        <omgdc:Bounds height="80.0" width="100.0" x="217.0" y="140.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="checkBudget" id="BPMNShape_checkBudget">
+        <omgdc:Bounds height="80.0" width="100.0" x="390.0" y="140.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="manager" id="BPMNShape_manager">
+        <omgdc:Bounds height="80.0" width="100.0" x="571.0" y="140.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="sid-6262E9F1-5712-4DBF-BA04-CD73935BA0EB" id="BPMNShape_sid-6262E9F1-5712-4DBF-BA04-CD73935BA0EB">
+        <omgdc:Bounds height="28.0" width="28.0" x="765.0" y="166.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-1B7F49C8-179D-4EEB-8779-B984D136B42A" id="BPMNEdge_sid-1B7F49C8-179D-4EEB-8779-B984D136B42A">
+        <omgdi:waypoint x="670.9499999999464" y="180.0"></omgdi:waypoint>
+        <omgdi:waypoint x="765.0" y="180.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-3BBA364D-5A3C-4904-8B77-94EABC1023FE" id="BPMNEdge_sid-3BBA364D-5A3C-4904-8B77-94EABC1023FE">
+        <omgdi:waypoint x="489.95000000000005" y="180.0"></omgdi:waypoint>
+        <omgdi:waypoint x="571.0" y="180.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-FF9E2855-0432-445E-9AD9-EB33143396B1" id="BPMNEdge_sid-FF9E2855-0432-445E-9AD9-EB33143396B1">
+        <omgdi:waypoint x="316.95000000000005" y="180.0"></omgdi:waypoint>
+        <omgdi:waypoint x="390.0" y="180.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-BF6A7ED8-D7AE-42D9-9E11-832A52434C7A" id="BPMNEdge_sid-BF6A7ED8-D7AE-42D9-9E11-832A52434C7A">
+        <omgdi:waypoint x="129.9486692350129" y="178.19669398097986"></omgdi:waypoint>
+        <omgdi:waypoint x="217.0" y="179.34210526315792"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

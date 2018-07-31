@@ -1,0 +1,40 @@
+<definitions xmlns="http://www.omg.org/spec/DMN/20151101" id="definition_6b0ea0bb-8b2d-11e8-8431-f83441534903" name="Expense_Process" namespace="http://www.flowable.org/dmn">
+  <decision id="EXP_PRO_1" name="Expense_Process">
+    <decisionTable id="decisionTable_6b0ea0bb-8b2d-11e8-8431-f83441534903" hitPolicy="FIRST">
+      <input label="expense money">
+        <inputExpression id="inputExpression_1" typeRef="number">
+          <text>money</text>
+        </inputExpression>
+      </input>
+      <output id="outputExpression_2" label="decision person" name="decisionPerson" typeRef="string">
+        <outputValues>
+          <text>"director","manager","boss"</text>
+        </outputValues>
+      </output>
+      <rule>
+        <inputEntry id="inputEntry_1_1">
+          <text><![CDATA[< 500]]></text>
+        </inputEntry>
+        <outputEntry id="outputEntry_2_1">
+          <text><![CDATA["director"]]></text>
+        </outputEntry>
+      </rule>
+      <rule>
+        <inputEntry id="inputEntry_1_2">
+          <text><![CDATA[< 1000]]></text>
+        </inputEntry>
+        <outputEntry id="outputEntry_2_2">
+          <text><![CDATA["manager"]]></text>
+        </outputEntry>
+      </rule>
+      <rule>
+        <inputEntry id="inputEntry_1_3">
+          <text><![CDATA[>= 1000]]></text>
+        </inputEntry>
+        <outputEntry id="outputEntry_2_3">
+          <text><![CDATA["boss"]]></text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

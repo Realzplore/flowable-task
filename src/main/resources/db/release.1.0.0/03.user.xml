@@ -1,0 +1,30 @@
+<!--
+  ~ Copyright (c) 2015 - 2018. Shanghai Zlp Information Technology Co,. ltd.
+  ~ All rights are reserved.
+  -->
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <property name="autoIncrement" value="true"/>
+    <changeSet id="2018072617480001" author="zlp">
+        <createTable tableName="ft_user">
+            <column name="id" type="bigint" autoIncrement="${autoIncrement}">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(250)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="group_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="profession_info_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <loadData tableName="ft_user" file="db/release.1.0.0/data/user.csv"/>
+    </changeSet>
+</databaseChangeLog>

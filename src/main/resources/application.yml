@@ -1,0 +1,31 @@
+server:
+  port: 10213
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/flowable?characterEncoding=UTF-8&useSSL=false
+    username: root
+    password: 526170
+  liquibase:
+    change-log: classpath:db/master.xml
+    enabled: true
+flowable:
+#\u5173\u95ED\u5B9A\u65F6\u4EFB\u52A1JOB
+  async-executor-activate: false
+management:
+  endpoint:
+    flowable:
+      enabled: true
+mybatis-plus:
+  mapper-locations: classpath:com/flowable/*/*Mapper.xml
+  global-config:
+      id-type: 2
+      field-strategy: 2
+      db-column-underline: true
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      sql-injector: com.baomidou.mybatisplus.mapper.LogicSqlInjector
+      refresh-mapper: false
+  configuration:
+      map-underscore-to-camel-case: true
+      cache-enabled: true
+
