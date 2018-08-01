@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 @SpringBootApplication
-@MapperScan("com.flowable")
+@MapperScan("com.flowable.modules.*.mapping")
 public class FlowableTaskApplication {
 
     public static void main(String[] args) {

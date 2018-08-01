@@ -6,10 +6,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.flowable.modules.user.mapping.UserMapper">
-    <select id="selectByUsername" resultType="com.flowable.modules.user.domain.User">
-        select *
-        from ft_user
-        where username = #{username};
+<mapper namespace="com.flowable.modules.user.mapping.UserAuthorityMapper">
+    <select id="getAuthoritesByUserId" resultType="java.lang.String">
+        select distinct authority_name
+        from ft_user_authority
+        where user_id = #{userId};
     </select>
 </mapper>

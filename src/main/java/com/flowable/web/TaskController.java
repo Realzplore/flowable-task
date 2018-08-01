@@ -1,5 +1,6 @@
 package com.flowable.web;
 
+import com.flowable.security.SecurityUtil;
 import org.apache.ibatis.javassist.tools.rmi.ObjectNotFoundException;
 import org.flowable.engine.TaskService;
 import org.flowable.task.api.Task;
@@ -7,10 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Author: liping.zheng
@@ -57,7 +55,6 @@ public class TaskController {
     @PostMapping(value = "/handle", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> handleTask(@RequestParam String processInstanceId,
                                           @RequestParam String taskId,
-                                          @RequestParam Long userId,
                                           @RequestParam Boolean isCompleted) throws ObjectNotFoundException {
 
         Task task = taskService.createTaskQuery().processInstanceId(processInstanceId).taskId(taskId).singleResult();
@@ -65,7 +62,7 @@ public class TaskController {
             throw new ObjectNotFoundException("task");
         }
         Map<String, Object> params = taskService.getVariables(task.getId());
-        if (!String.valueOf(userId).equals(task.getAssignee())) {
+        if (!String.valueOf(SecurityUtil.getCurrentUserId()).equals(task.getAssignee())) {
             throw new RuntimeException("不符合对应操作人权限.");
         }
         params.put("count", (Integer) params.get("count") + 1);
@@ -79,9 +76,10 @@ public class TaskController {
         return result;
     }
 
-    @GetMapping(value = "/list/{userId}")
-    public List<Map<String, Object>> getTaskListByEmployee(@PathVariable String userId) {
-        List<Task> taskList = taskService.createTaskQuery().taskAssignee(userId).list();
+    @GetMapping(value = "/list")
+    public List<Map<String, Object>> getTaskListByEmployee(@RequestParam(required = false) String userId) {
+        List<Task> taskList = taskService.createTaskQuery()
+                .taskAssignee(Optional.ofNullable(userId).orElse(String.valueOf(SecurityUtil.getCurrentUserId()))).list();
         List<Map<String, Object>> result = new ArrayList<>();
         if (taskList == null || taskList.size() == 0) {
             return result;

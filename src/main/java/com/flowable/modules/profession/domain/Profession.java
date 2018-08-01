@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotations.TableField;
 import com.baomidou.mybatisplus.annotations.TableName;
 import com.flowable.core.domain.FtDomain;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 /**
@@ -11,6 +12,7 @@ import lombok.Data;
  * @Date: 2018/7/27
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @TableName("ft_profession")
 public class Profession extends FtDomain {
     /**

@@ -1,9 +1,14 @@
 package com.flowable.modules.user.service;
 
 import com.flowable.modules.user.domain.User;
+import com.flowable.modules.user.mapping.UserAuthorityMapper;
 import com.flowable.modules.user.mapping.UserMapper;
 import com.flowable.core.service.BaseService;
 import org.apache.ibatis.javassist.tools.rmi.ObjectNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,7 +18,9 @@ import java.util.Optional;
  * @Date: 2018/7/27
  */
 @Service
-public class UserService extends BaseService<UserMapper, User> {
+public class UserService extends BaseService<UserMapper, User> implements UserDetailsService {
+    @Autowired
+    UserAuthorityMapper userAuthorityMapper;
 
     public User getParentUserById(Long id) throws ObjectNotFoundException {
         User user = baseMapper.selectById(id);
@@ -26,7 +33,7 @@ public class UserService extends BaseService<UserMapper, User> {
             return user;
         }
         User parent = baseMapper.selectById(user.getParentUserId());
-        return Optional.ofNullable(parent).orElse(null);
+        return Optional.ofNullable(getUserAuthorities(parent)).orElse(null);
     }
 
 
@@ -45,6 +52,25 @@ public class UserService extends BaseService<UserMapper, User> {
             }
             assignee = parent;
         }
-        return assignee;
+        return getUserAuthorities(assignee);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = baseMapper.selectByUsername(username);
+        return getUserAuthorities(user);
+    }
+
+    /**
+     * 获取用户权限
+     * @param user
+     * @return
+     */
+    private User getUserAuthorities(User user) {
+        if (user == null || user.getId() == null) {
+            return null;
+        }
+        user.setAuthorityList(userAuthorityMapper.getAuthoritesByUserId(user.getId()));
+        return user;
     }
 }

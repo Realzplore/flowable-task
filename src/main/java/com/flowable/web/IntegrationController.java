@@ -1,5 +1,6 @@
 package com.flowable.web;
 
+import com.flowable.security.SecurityUtil;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.engine.*;
 import org.flowable.engine.runtime.Execution;
@@ -45,7 +46,6 @@ public class IntegrationController {
      * 开启流程实例
      *
      * @param processKey
-     * @param userId
      * @param money
      * @param description
      * @return
@@ -53,13 +53,12 @@ public class IntegrationController {
     @GetMapping("/addProcess")
     @ResponseBody
     public String addExpense(@RequestParam String processKey,
-                             @RequestParam Long userId,
                              @RequestParam Double money,
                              @RequestParam(required = false) Integer count,
                              @RequestParam(required = false) String description) {
         //启动流程
         HashMap<String, Object> map = new HashMap<>();
-        map.put("userId", userId);
+        map.put("userId", SecurityUtil.getCurrentUserId());
         map.put("money", money);
         map.put("count", (count == null) ? 1 : count);
         map.put("description", description);
