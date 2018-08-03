@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @Date: 2018/7/27
  */
 @Data
-public class FtDomain implements Serializable {
+public abstract class FtDomain implements Serializable {
     @TableId
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
