@@ -68,6 +68,7 @@ public class TaskController {
         params.put("count", (Integer) params.get("count") + 1);
         params.put("approved", isCompleted);
         taskService.setVariableLocal(task.getId(), "approved", isCompleted);
+        taskService.setVariableLocal(task.getId(), "assignee", task.getAssignee());
         taskService.complete(task.getId(), params);
         Map<String, Object> result = new HashMap<>();
         result.put("processInstanceId", processInstanceId);
@@ -76,8 +77,8 @@ public class TaskController {
         return result;
     }
 
-    @GetMapping(value = "/list")
-    public List<Map<String, Object>> getTaskListByEmployee(@RequestParam(required = false) String userId) {
+    @GetMapping(value = "/list/{userId}")
+    public List<Map<String, Object>> getTaskListByEmployee(@PathVariable(required = false) String userId) {
         List<Task> taskList = taskService.createTaskQuery()
                 .taskAssignee(Optional.ofNullable(userId).orElse(String.valueOf(SecurityUtil.getCurrentUserId()))).list();
         List<Map<String, Object>> result = new ArrayList<>();

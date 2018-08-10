@@ -22,6 +22,13 @@ public class UserService extends BaseService<UserMapper, User> implements UserDe
     @Autowired
     UserAuthorityMapper userAuthorityMapper;
 
+
+    @Override
+    public User selectById(Long id) {
+        User user = super.selectById(id);
+        return Optional.ofNullable(getUserAuthorities(user)).orElse(null);
+    }
+
     public User getParentUserById(Long id) throws ObjectNotFoundException {
         User user = baseMapper.selectById(id);
         if (user == null) {

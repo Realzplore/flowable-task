@@ -35,12 +35,12 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
     compile 'org.springframework.boot:spring-boot-starter-cache'
     compile 'org.springframework.boot:spring-boot-starter-data-redis'
+    //flowable  beg
+
+    //flowable  end
     compile 'org.flowable:flowable-spring-boot-starter-rest:6.3.1'
     compile 'org.flowable:flowable-spring-boot-starter-basic:6.3.1'
     compile 'org.springframework.security.oauth:spring-security-oauth2:2.1.0.RELEASE'
-//    compile 'org.flowable:flowable-ui-modeler-conf:6.3.1'
-//    compile 'org.flowable:flowable-ui-modeler-logic:6.3.1'
-//    compile 'org.flowable:flowable-ui-modeler-rest:6.3.1'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.3'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.3'

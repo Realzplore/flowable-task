@@ -9,6 +9,10 @@ spring:
   liquibase:
     change-log: classpath:db/master.xml
     enabled: true
+  redis:
+    port: 6379
+    host: localhost
+    timeout: 6000ms
 flowable:
 #\u5173\u95ED\u5B9A\u65F6\u4EFB\u52A1JOB
   async-executor-activate: false

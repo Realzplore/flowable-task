@@ -1,6 +1,10 @@
 package com.flowable.web;
 
-import com.flowable.security.SecurityUtil;
+import com.flowable.modules.expense.domain.Expense;
+import com.flowable.modules.user.domain.User;
+import com.flowable.service.PreviewService;
+import com.flowable.service.ExpenseProcessService;
+import org.apache.ibatis.javassist.tools.rmi.ObjectNotFoundException;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.engine.*;
 import org.flowable.engine.runtime.Execution;
@@ -10,15 +14,16 @@ import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.flowable.variable.api.history.HistoricVariableInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author: liping.zheng
@@ -42,43 +47,65 @@ public class IntegrationController {
     @Autowired
     private ProcessEngineConfiguration processEngineConfiguration;
 
+    @Autowired
+    private PreviewService previewService;
+
+    @Autowired
+    private ExpenseProcessService expenseProcessService;
     /**
      * 开启流程实例
      *
      * @param processKey
-     * @param money
-     * @param description
      * @return
      */
-    @GetMapping("/addProcess")
-    @ResponseBody
-    public String addExpense(@RequestParam String processKey,
-                             @RequestParam Double money,
-                             @RequestParam(required = false) Integer count,
-                             @RequestParam(required = false) String description) {
-        //启动流程
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("userId", SecurityUtil.getCurrentUserId());
-        map.put("money", money);
-        map.put("count", (count == null) ? 1 : count);
-        map.put("description", description);
-        ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(processKey, map);
-        return "提交成功，流程Id为：" + processInstance.getId();
+    @PostMapping(value = "/addProcess",produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Expense> addExpense(@RequestParam String processKey,
+                                              @RequestBody Expense expense) {
+        return ResponseEntity.ok(expenseProcessService.startProcessInstanceByKey(processKey, expense));
     }
 
     /**
-     * 获取正在处理中的流程列表
+     * 获取正在处理中的报销单列表
+     *
      * @return
      */
     @GetMapping(value = "/getProcessList")
-    public String getProcessList() {
-        List<ProcessInstance> processInstanceList = runtimeService.createProcessInstanceQuery().list();
-        return processInstanceList.toString();
+    public ResponseEntity<List<Expense>> getProcessList() {
+        List<String> processInstanceIdList = runtimeService.createProcessInstanceQuery().list().stream().map(f -> f.getProcessInstanceId()).collect(Collectors.toList());
+        return ResponseEntity.ok(expenseProcessService.getRuntimeExpenseList(processInstanceIdList));
     }
 
     /**
+     * 获取历史报销单列表
+     *
+     * @return
+     */
+    @GetMapping(value = "/getHisProcessList")
+    public ResponseEntity<List<Expense>> getHisProcessList() {
+        List<String> historicProcessInstanceIdList = historyService.createHistoricProcessInstanceQuery().list().stream().map(f -> f.getSuperProcessInstanceId()).collect(Collectors.toList());
+        return ResponseEntity.ok(expenseProcessService.getRuntimeExpenseList(historicProcessInstanceIdList));
+    }
+
+    /**
+     * 删除历史流程
+     *
+     * @param hisProcessInstanceId
+     */
+    @DeleteMapping(value = "delete/history/{hisProcessInstanceId}")
+    public void deleteHisProcessInstance(@PathVariable String hisProcessInstanceId) {
+        historyService.deleteHistoricProcessInstance(hisProcessInstanceId);
+    }
+
+    @DeleteMapping(value = "delete/{processInstanceId}")
+    public void deleteProcessInstance(@PathVariable String processInstanceId, @RequestParam String deleteReason) {
+        runtimeService.deleteProcessInstance(processInstanceId, deleteReason);
+    }
+
+
+    /**
      * 获取流程审批历史
-      * @param processInstanceId
+     *
+     * @param processInstanceId
      * @return
      */
     @GetMapping(value = "/getHistoryApprove/{processInstanceId}")
@@ -89,16 +116,54 @@ public class IntegrationController {
             return result;
         }
         for (HistoricTaskInstance historicTaskInstance : historicTaskInstanceList) {
-            HistoricVariableInstance historicVariableInstance = historyService.createHistoricVariableInstanceQuery().processInstanceId(processInstanceId).taskId(historicTaskInstance.getId()).variableName("approved").singleResult();
+            HistoricVariableInstance approved = historyService.createHistoricVariableInstanceQuery().processInstanceId(processInstanceId).taskId(historicTaskInstance.getId()).variableName("approved").singleResult();
+            HistoricVariableInstance assignee = historyService.createHistoricVariableInstanceQuery().processInstanceId(processInstanceId).taskId(historicTaskInstance.getId()).variableName("assignee").singleResult();
             Map<String, Object> taskParam = new HashMap<>();
             taskParam.put("taskId", historicTaskInstance.getId());
-            taskParam.put("assignee", historicTaskInstance.getAssignee());
-            taskParam.put("approved", (historicVariableInstance == null) ? null : historicVariableInstance.getValue());
+            taskParam.put("assignee", (assignee == null) ? null : assignee.getValue());
+            taskParam.put("approved", (approved == null) ? null : approved.getValue());
             taskParam.put("startTime", historicTaskInstance.getStartTime());
             taskParam.put("endTime", historicTaskInstance.getEndTime());
             result.add(taskParam);
         }
         return result;
+    }
+
+    /**
+     * 模拟预览审批流程
+     * @param processKey
+     * @param expense
+     * @return
+     * @throws ObjectNotFoundException
+     */
+    @PostMapping(value = "/preview", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<User>> previewProcess(@RequestParam String processKey,
+                                                     @RequestBody Expense expense) throws ObjectNotFoundException {
+        return ResponseEntity.ok(previewService.getPreviewProcessByDmnKey(processKey, expense));
+    }
+
+
+    @GetMapping(value = "/preview/running", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<User, Boolean>> previewProcessing(@RequestParam String taskId) throws ObjectNotFoundException {
+        Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (task == null) {
+            return null;
+        }
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
+        List<Expense> expenseList = expenseProcessService.getRuntimeExpenseList(Collections.singletonList(task.getProcessInstanceId()));
+        if (expenseList == null) {
+            return null;
+        }
+        List<User> userList = previewService.getPreviewProcessByDmnKey(processInstance.getProcessDefinitionKey(), expenseList.get(0));
+        return ResponseEntity.ok(userList.stream().collect(Collectors.toMap(o->o, o->{
+            if (StringUtils.isEmpty(task.getAssignee())) {
+                return Boolean.FALSE;
+            }
+            if (String.valueOf(o.getId()).equals(task.getAssignee())) {
+                return Boolean.TRUE;
+            }
+            return Boolean.FALSE;
+        })));
     }
 
     /**
@@ -140,7 +205,7 @@ public class IntegrationController {
             while ((length = in.read(buff)) != -1) {
                 out.write(buff, 0, length);
             }
-        }finally {
+        } finally {
             if (in != null) {
                 in.close();
             }

@@ -2,6 +2,8 @@ package com.flowable.modules.user.domain;
 
 import com.baomidou.mybatisplus.annotations.TableField;
 import com.baomidou.mybatisplus.annotations.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.flowable.core.domain.FtDomain;
@@ -33,6 +35,7 @@ public class User extends FtDomain implements UserDetails {
      * 用户密码
      */
     @TableField
+    @JsonIgnore
     private String password;
 
     /**
@@ -94,4 +97,16 @@ public class User extends FtDomain implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "User(" +
+                "id="+ this.getId()+
+                ",username="+this.getUsername()+
+                ",name="+this.getName()+
+                ",groupId="+this.getGroupId()+
+                ",authorityList="+this.getAuthorityList()
+                +")";
+    }
+
 }
