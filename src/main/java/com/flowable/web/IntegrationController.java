@@ -3,6 +3,7 @@ package com.flowable.web;
 import com.flowable.security.SecurityUtil;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.engine.*;
+import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.image.ProcessDiagramGenerator;
@@ -77,6 +78,38 @@ public class IntegrationController {
     }
 
     /**
+     * 获取历史流程列表
+     * @return
+     */
+    @GetMapping(value = "/getHisProcessList")
+    public List<Map<String,Object>> getHisProcessList() {
+        List<Map<String, Object>> results = new ArrayList<>();
+        List<HistoricProcessInstance> historicProcessInstanceList = historyService.createHistoricProcessInstanceQuery().list();
+        historicProcessInstanceList.forEach(historicProcessInstance->{
+            Map<String, Object> param = new HashMap<>();
+            param.put("processInstanceId", historicProcessInstance.getId());
+            param.put("startUser", historicProcessInstance.getStartUserId());
+            results.add(param);
+        });
+        return results;
+    }
+
+    /**
+     * 删除历史流程
+     * @param hisProcessInstanceId
+     */
+    @DeleteMapping(value = "delete/history/{hisProcessInstanceId}")
+    public void deleteHisProcessInstance(@PathVariable String hisProcessInstanceId) {
+        historyService.deleteHistoricProcessInstance(hisProcessInstanceId);
+    }
+
+    @DeleteMapping(value = "delete/{processInstanceId}")
+    public void deleteProcessInstance(@PathVariable String processInstanceId,@RequestParam String deleteReason) {
+        runtimeService.deleteProcessInstance(processInstanceId,deleteReason);
+    }
+
+
+    /**
      * 获取流程审批历史
       * @param processInstanceId
      * @return
@@ -89,11 +122,12 @@ public class IntegrationController {
             return result;
         }
         for (HistoricTaskInstance historicTaskInstance : historicTaskInstanceList) {
-            HistoricVariableInstance historicVariableInstance = historyService.createHistoricVariableInstanceQuery().processInstanceId(processInstanceId).taskId(historicTaskInstance.getId()).variableName("approved").singleResult();
+            HistoricVariableInstance approved = historyService.createHistoricVariableInstanceQuery().processInstanceId(processInstanceId).taskId(historicTaskInstance.getId()).variableName("approved").singleResult();
+            HistoricVariableInstance assignee = historyService.createHistoricVariableInstanceQuery().processInstanceId(processInstanceId).taskId(historicTaskInstance.getId()).variableName("assignee").singleResult();
             Map<String, Object> taskParam = new HashMap<>();
             taskParam.put("taskId", historicTaskInstance.getId());
-            taskParam.put("assignee", historicTaskInstance.getAssignee());
-            taskParam.put("approved", (historicVariableInstance == null) ? null : historicVariableInstance.getValue());
+            taskParam.put("assignee", (assignee == null) ? null : assignee.getValue());
+            taskParam.put("approved", (approved == null) ? null : approved.getValue());
             taskParam.put("startTime", historicTaskInstance.getStartTime());
             taskParam.put("endTime", historicTaskInstance.getEndTime());
             result.add(taskParam);
