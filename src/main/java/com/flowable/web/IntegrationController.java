@@ -2,6 +2,7 @@ package com.flowable.web;
 
 import com.flowable.modules.expense.domain.Expense;
 import com.flowable.modules.user.domain.User;
+import com.flowable.modules.user.dto.UserDTO;
 import com.flowable.service.PreviewService;
 import com.flowable.service.ExpenseProcessService;
 import org.apache.ibatis.javassist.tools.rmi.ObjectNotFoundException;
@@ -13,6 +14,7 @@ import org.flowable.image.ProcessDiagramGenerator;
 import org.flowable.task.api.Task;
 import org.flowable.task.api.history.HistoricTaskInstance;
 import org.flowable.variable.api.history.HistoricVariableInstance;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -144,7 +146,7 @@ public class IntegrationController {
 
 
     @GetMapping(value = "/preview/running", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<User, Boolean>> previewProcessing(@RequestParam String taskId) throws ObjectNotFoundException {
+    public ResponseEntity<List<UserDTO>> previewProcessing(@RequestParam String taskId) throws ObjectNotFoundException {
         Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
         if (task == null) {
             return null;
@@ -155,15 +157,17 @@ public class IntegrationController {
             return null;
         }
         List<User> userList = previewService.getPreviewProcessByDmnKey(processInstance.getProcessDefinitionKey(), expenseList.get(0));
-        return ResponseEntity.ok(userList.stream().collect(Collectors.toMap(o->o, o->{
+        return ResponseEntity.ok(userList.stream().map(f -> {
+            UserDTO userDTO = new UserDTO();
+            BeanUtils.copyProperties(f, userDTO);
             if (StringUtils.isEmpty(task.getAssignee())) {
-                return Boolean.FALSE;
+                userDTO.setIsProcessed(Boolean.FALSE);
             }
-            if (String.valueOf(o.getId()).equals(task.getAssignee())) {
-                return Boolean.TRUE;
+            if (String.valueOf(userDTO.getId()).equals(task.getAssignee())) {
+                userDTO.setIsProcessed(Boolean.TRUE);
             }
-            return Boolean.FALSE;
-        })));
+            return userDTO;
+        }).collect(Collectors.toList()));
     }
 
     /**
